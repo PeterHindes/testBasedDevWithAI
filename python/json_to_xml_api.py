@@ -1,74 +1,43 @@
 import json
+import xml.etree.ElementTree as ET
 
-def json_to_xml(json_string):
+def json_to_xml(json_data):
     """
-    Convert a JSON string to XML format.
-    
-    Args:
-        json_string (str): A valid JSON string
-        
-    Returns:
-        str: XML formatted string
-    """
-    # Parse JSON string to Python dictionary
-    data = json.loads(json_string)
-    
-    # Handle empty JSON object
-    if not data:
-        return '<root />'
-    
-    # Convert dictionary to XML
-    return '<root>' + _dict_to_xml(data) + '</root>'
+    Converts a JSON string to an XML string.
 
-def _dict_to_xml(data):
-    """
-    Helper function to recursively convert Python dictionary to XML string.
-    
     Args:
-        data: Python dictionary, list, or primitive type
-        
+        json_data (str): A JSON-formatted string.
+
     Returns:
-        str: XML formatted string without root element
+        str: An XML string representation of the input JSON data.
     """
-    # Handle different data types
+    try:
+        data = json.loads(json_data)
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON input")
+
+    root = ET.Element('root')
+    _convert_to_xml(data, root)
+    return ET.tostring(root, encoding='utf-8').decode('utf-8')
+
+def _convert_to_xml(data, parent):
+    """
+    Recursively converts a Python dictionary or list to an XML structure.
+
+    Args:
+        data (dict or list): The input data to be converted to XML.
+        parent (xml.etree.ElementTree.Element): The parent XML element.
+    """
     if isinstance(data, dict):
-        return ''.join(_handle_dict_item(key, value) for key, value in data.items())
+        for key, value in data.items():
+            if isinstance(value, (dict, list)):
+                child = ET.SubElement(parent, key)
+                _convert_to_xml(value, child)
+            else:
+                ET.SubElement(parent, key).text = str(value)
     elif isinstance(data, list):
-        return _handle_list(data)
+        for item in data:
+            child = ET.SubElement(parent, 'person')
+            _convert_to_xml(item, child)
     else:
-        return str(data)
-
-def _handle_dict_item(key, value):
-    """
-    Handle dictionary key-value pair conversion to XML.
-    
-    Args:
-        key: Dictionary key
-        value: Dictionary value
-        
-    Returns:
-        str: XML formatted string for the key-value pair
-    """
-    if isinstance(value, list):
-        # Special handling for lists
-        if key == 'children':
-            # Handle children list specially
-            return f'<{key}>' + ''.join(f'<child>{_dict_to_xml(item)}</child>' for item in value) + f'</{key}>'
-        else:
-            # Handle other lists
-            return f'<{key}>' + ''.join(f'<person>{_dict_to_xml(item)}</person>' for item in value) + f'</{key}>'
-    else:
-        # Handle non-list values
-        return f'<{key}>{_dict_to_xml(value)}</{key}>'
-
-def _handle_list(data):
-    """
-    Handle list conversion to XML.
-    
-    Args:
-        data: Python list
-        
-    Returns:
-        str: XML formatted string for the list
-    """
-    return ''.join(f'<item>{_dict_to_xml(item)}</item>' for item in data)
+        parent.text = str(data)
