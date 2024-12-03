@@ -1,43 +1,58 @@
 import json
-import xml.etree.ElementTree as ET
 
-def json_to_xml(json_data):
+def json_to_xml(json_string):
     """
-    Converts a JSON string to an XML string.
-
+    Convert a JSON string to XML format.
+    
     Args:
-        json_data (str): A JSON-formatted string.
-
+        json_string (str): A valid JSON string
+        
     Returns:
-        str: An XML string representation of the input JSON data.
+        str: XML formatted string
     """
-    try:
-        data = json.loads(json_data)
-    except json.JSONDecodeError:
-        raise ValueError("Invalid JSON input")
-
-    root = ET.Element('root')
-    _convert_to_xml(data, root)
-    return ET.tostring(root, encoding='utf-8').decode('utf-8')
-
-def _convert_to_xml(data, parent):
-    """
-    Recursively converts a Python dictionary or list to an XML structure.
-
-    Args:
-        data (dict or list): The input data to be converted to XML.
-        parent (xml.etree.ElementTree.Element): The parent XML element.
-    """
-    if isinstance(data, dict):
-        for key, value in data.items():
-            if isinstance(value, (dict, list)):
-                child = ET.SubElement(parent, key)
-                _convert_to_xml(value, child)
-            else:
-                ET.SubElement(parent, key).text = str(value)
-    elif isinstance(data, list):
-        for item in data:
-            child = ET.SubElement(parent, 'person')
-            _convert_to_xml(item, child)
-    else:
-        parent.text = str(data)
+    # Parse JSON string to Python dictionary
+    data = json.loads(json_string)
+    
+    def _build_xml(obj, parent_tag=None):
+        """
+        Recursively build XML string from Python object
+        
+        Args:
+            obj: Python object (dict, list, str, int, etc.)
+            parent_tag: The parent tag name for context
+            
+        Returns:
+            str: XML formatted string
+        """
+        # Handle empty dictionary
+        if not obj and isinstance(obj, dict):
+            return '<root />'
+            
+        # Handle dictionary
+        if isinstance(obj, dict):
+            parts = []
+            for key, value in obj.items():
+                # Handle nested content
+                xml_content = _build_xml(value, key)
+                parts.append(f'<{key}>{xml_content}</{key}>')
+            
+            # If this is the top level, wrap in root tags
+            if parent_tag is None:
+                return f'<root>{"".join(parts)}</root>'
+            return "".join(parts)
+            
+        # Handle lists (collections)
+        if isinstance(obj, list):
+            parts = []
+            # Determine the singular form for special collections
+            singular_tag = 'person' if parent_tag == 'people' else 'child' if parent_tag == 'children' else parent_tag
+            
+            for item in obj:
+                xml_content = _build_xml(item, singular_tag)
+                parts.append(f'<{singular_tag}>{xml_content}</{singular_tag}>')
+            return "".join(parts)
+            
+        # Handle primitive values (strings, numbers, etc.)
+        return str(obj)
+    
+    return _build_xml(data)

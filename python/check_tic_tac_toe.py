@@ -1,25 +1,15 @@
 def checkTicTacToeWin(board):
-    """
-    Checks the given Tic Tac Toe board and returns the winner, if any.
-
-    Args:
-        board (list): A 3x3 list representing the Tic Tac Toe board.
-            Each element in the list can be 'X', 'O', or ' ' (empty).
-
-    Returns:
-        str or None: The winner ('X' or 'O') if there is a winner, otherwise None.
-    """
-    # Check rows
+    # Check horizontal wins
     for row in board:
         if row[0] == row[1] == row[2] != ' ':
             return row[0]
 
-    # Check columns
-    for i in range(3):
-        if board[0][i] == board[1][i] == board[2][i] != ' ':
-            return board[0][i]
+    # Check vertical wins
+    for col in range(3):
+        if board[0][col] == board[1][col] == board[2][col] != ' ':
+            return board[0][col]
 
-    # Check diagonals
+    # Check diagonal wins
     if board[0][0] == board[1][1] == board[2][2] != ' ':
         return board[0][0]
     if board[0][2] == board[1][1] == board[2][0] != ' ':
@@ -27,3 +17,11 @@ def checkTicTacToeWin(board):
 
     # No winner
     return None
+
+# Example usage:
+board = [
+    ['X', 'O', ' '],
+    [' ', 'X', 'O'],
+    ['O', ' ', ' ']
+]
+print(checkTicTacToeWin(board))  # Output: None

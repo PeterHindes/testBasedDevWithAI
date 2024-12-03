@@ -1,6 +1,7 @@
+# As you will see this is a test file for the json_to_xml function. The function must return the xml and if there is a collection it will use one of two names that are the non plural, specifically child for children or person for people.
+
 import unittest
 import json
-# import xml.etree.ElementTree as ET
 from json_to_xml_api import json_to_xml  # Assuming the function to be tested is in json_to_xml_api.py
 
 class TestJsonToXmlAPI(unittest.TestCase):
