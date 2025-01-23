@@ -1,0 +1,26 @@
+meta {
+  name: Get Task Analytics
+  type: http
+  seq: 1
+}
+
+get {{base_url}}/tasks/{{test_task_id}}/analytics
+
+test {
+  bruno.assert("Status 200", response.status === 200);
+  bruno.assert("Valid percentage", response.body.percentage_complete >= 0);
+  bruno.assert("Health status", ["good","okay","critical"].includes(response.body.completion_health));
+}
+
+meta {
+  name: Completed Task Analytics
+  type: http
+  seq: 2
+}
+
+get {{base_url}}/tasks/{{completed_task_id}}/analytics
+
+test {
+  bruno.assert("Full completion", response.body.percentage_complete === 100);
+  bruno.assert("Completion time exists", typeof response.body.time_to_complete_hours === "number");
+}

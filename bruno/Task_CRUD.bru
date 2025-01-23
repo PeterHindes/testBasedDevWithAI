@@ -1,0 +1,63 @@
+meta {
+  name: Create Valid Task
+  type: http
+  seq: 1
+}
+
+post {{base_url}}/tasks
+headers {
+  Content-Type: application/json
+}
+
+body {
+  {
+    "name": "Bruno Test Task",
+    "start_date": "2024-03-20T12:00:00Z",
+    "due_date": "2024-03-25T12:00:00Z",
+    "priority": 3
+  }
+}
+
+test {
+  bruno.assert("Status is 201", response.status === 201);
+  bruno.assert("Has UUID", response.body.id?.length > 10);
+  bruno.setVar("test_task_id", response.body.id);
+}
+
+meta {
+  name: Complete Task
+  type: http
+  seq: 2
+}
+
+put {{base_url}}/tasks/{{test_task_id}}/complete
+
+test {
+  bruno.assert("Status 200", response.status === 200);
+  bruno.assert("Marked completed", response.body.status === "completed");
+  bruno.setVar("completed_task_id", response.body.id);
+}
+
+meta {
+  name: Create Invalid Task
+  type: http
+  seq: 3
+}
+
+post {{base_url}}/tasks
+headers {
+  Content-Type: application/json
+}
+
+body {
+  {
+    "name": "AB",
+    "start_date": "2024-03-20T12:00:00Z",
+    "due_date": "2024-03-19T12:00:00Z",
+    "priority": 0
+  }
+}
+
+test {
+  bruno.assert("Status 400", response.status === 400);
+}

@@ -1,0 +1,13 @@
+meta {
+  name: System Stats
+  type: http
+  seq: 1
+}
+
+get {{base_url}}/analytics
+
+test {
+  bruno.assert("Status 200", response.status === 200);
+  bruno.assert("Valid completion rate", response.body.system_stats.completion_rate >= 0);
+  bruno.assert("Priority distribution", Object.keys(response.body.system_stats.tasks_by_priority).length > 0);
+}
