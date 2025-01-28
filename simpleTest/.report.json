@@ -1,0 +1,100 @@
+{
+    "created": 1738051062.675313,
+    "duration": 4.2495269775390625,
+    "exitcode": 1,
+    "root": "C:\\Users\\user\\Documents\\GitHub\\testBasedDevWithAI\\simpleTest",
+    "environment": {},
+    "summary": {
+        "passed": 1,
+        "failed": 1,
+        "total": 2,
+        "collected": 2
+    },
+    "collectors": [
+        {
+            "nodeid": "",
+            "outcome": "passed",
+            "result": [
+                {
+                    "nodeid": "test_api.py",
+                    "type": "Module"
+                }
+            ]
+        },
+        {
+            "nodeid": "test_api.py",
+            "outcome": "passed",
+            "result": [
+                {
+                    "nodeid": "test_api.py::test_api_hello_world",
+                    "type": "Function",
+                    "lineno": 2
+                },
+                {
+                    "nodeid": "test_api.py::test_api_hello_world_should_fail",
+                    "type": "Function",
+                    "lineno": 18
+                }
+            ]
+        }
+    ],
+    "tests": [
+        {
+            "nodeid": "test_api.py::test_api_hello_world",
+            "lineno": 2,
+            "outcome": "passed",
+            "keywords": [
+                "test_api_hello_world",
+                "test_api.py",
+                "simpleTest"
+            ],
+            "setup": {
+                "duration": 0.00019439999960013665,
+                "outcome": "passed"
+            },
+            "call": {
+                "duration": 2.036475699998846,
+                "outcome": "passed"
+            },
+            "teardown": {
+                "duration": 0.00012649999916902743,
+                "outcome": "passed"
+            }
+        },
+        {
+            "nodeid": "test_api.py::test_api_hello_world_should_fail",
+            "lineno": 18,
+            "outcome": "failed",
+            "keywords": [
+                "test_api_hello_world_should_fail",
+                "test_api.py",
+                "simpleTest"
+            ],
+            "setup": {
+                "duration": 0.00015109999731066637,
+                "outcome": "passed"
+            },
+            "call": {
+                "duration": 2.028399699996953,
+                "outcome": "failed",
+                "crash": {
+                    "path": "C:\\Users\\user\\Documents\\GitHub\\testBasedDevWithAI\\simpleTest\\test_api.py",
+                    "lineno": 33,
+                    "message": "AssertionError: Expected {\"hello\": \"mars\"}, got {'hello': 'world'}\nassert {'hello': 'world'} == {'hello': 'mars'}\n  Differing items:\n  {'hello': 'world'} != {'hello': 'mars'}\n  Full diff:\n  - {'hello': 'mars'}\n  ?            ^^ ^\n  + {'hello': 'world'}\n  ?            ^^ ^^"
+                },
+                "traceback": [
+                    {
+                        "path": "test_api.py",
+                        "lineno": 33,
+                        "message": "AssertionError"
+                    }
+                ],
+                "longrepr": "def test_api_hello_world_should_fail():\n        # Replace this URL with your actual API endpoint\n        url = \"http://localhost:5000/hello\"\n    \n        # Make a GET request to the API\n        response = requests.get(url)\n    \n        # Verify the HTTP status code is 200 (OK)\n        assert response.status_code == 200, f\"Expected status code 200, got {response.status_code}\"\n    \n        # Parse the JSON response\n        data = response.json()\n    \n        # Intentionally check for an incorrect response\n>       assert data == {\"hello\": \"mars\"}, f'Expected {{\"hello\": \"mars\"}}, got {data}'\nE       AssertionError: Expected {\"hello\": \"mars\"}, got {'hello': 'world'}\nE       assert {'hello': 'world'} == {'hello': 'mars'}\nE         Differing items:\nE         {'hello': 'world'} != {'hello': 'mars'}\nE         Full diff:\nE         - {'hello': 'mars'}\nE         ?            ^^ ^\nE         + {'hello': 'world'}\nE         ?            ^^ ^^\n\ntest_api.py:33: AssertionError"
+            },
+            "teardown": {
+                "duration": 0.00014250000094762072,
+                "outcome": "passed"
+            }
+        }
+    ]
+}
