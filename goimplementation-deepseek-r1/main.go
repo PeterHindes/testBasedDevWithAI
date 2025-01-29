@@ -116,8 +116,23 @@ func createTask(c *gin.Context) {
 }
 
 func listTasks(c *gin.Context) {
-	// Implementation similar to Python version
-	// Includes filtering logic
+	rows, err := db.Query(`SELECT 
+		id, name, start_date, due_date, priority, status, created_at, completed_at 
+		FROM tasks`)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	tasks := []Task{}
+	for rows.Next() {
+		var task Task
+		rows.Scan(&task.ID, &task.Name, &task.StartDate, &task.DueDate, &task.Priority, &task.Status, &task.CreatedAt, &task.CompletedAt)
+		tasks = append(tasks, task)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"tasks": tasks})
 }
 
 func completeTask(c *gin.Context) {
