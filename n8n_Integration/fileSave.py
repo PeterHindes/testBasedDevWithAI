@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify
-from flask_httpauth import HTTPBasicAuth
+#from flask_httpauth import HTTPBasicAuth
 import os
 import re
 
 app = Flask(__name__)
-auth = HTTPBasicAuth()
+#auth = HTTPBasicAuth()
 
 # Define valid username and password (in a real-world scenario, use environment variables or a database)
 USER_DATA = {
