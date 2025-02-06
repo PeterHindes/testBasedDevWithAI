@@ -23,9 +23,14 @@ for test in data.get('tests', []):
             'message': message
         })
 
+# Wrap the failed tests in a parent node
+result = {
+    'failed-tests': failed_tests
+}
+
 # Output the result
-print(json.dumps(failed_tests, indent=2))
+# print(json.dumps(result, indent=2))
 
 # Save the result to a file
 with open('failed_tests.json', 'w') as f:
-    json.dump(failed_tests, f, indent=2)
+    json.dump(result, f, indent=2)
