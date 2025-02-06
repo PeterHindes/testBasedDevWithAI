@@ -1,7 +1,7 @@
 name: Trigger Webhook on Push to Tests Branch
 
 on:
-  push:
+  commit:
     branches:
       - tests  # Trigger only when there's a push to the 'tests' branch
 
