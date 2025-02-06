@@ -1,0 +1,55 @@
+name: Trigger Webhook on Push to Tests Branch
+
+on:
+  push:
+    branches:
+      - tests  # Trigger only when there's a push to the 'tests' branch
+
+jobs:
+  call-webhook-and-create-file:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Step 2: Call the webhook using the secret URL
+      - name: Call Webhook
+        id: webhook_call
+        run: |
+          # Use the secret webhook URL
+          WEBHOOK_URL="${{ secrets.RELAVANCEAIWEBHOOK }}"
+          
+          # Use curl to send a POST request to the webhook and capture the response
+          RESPONSE=$(curl -X POST -H "Content-Type: application/json" -d '{"event":"push"}' $WEBHOOK_URL)
+          
+          # Save the response to an environment variable
+          echo "WEBHOOK_RESPONSE=$RESPONSE" >> $GITHUB_ENV
+
+      # Step 3: Switch to the 'returns' branch
+      - name: Switch to Returns Branch
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # Fetch all branches
+          git fetch origin returns
+          
+          # Checkout the 'returns' branch
+          git checkout returns
+
+      # Step 4: Create the return.py file with the webhook response
+      - name: Create return.py File
+        run: |
+          # Write the webhook response to return.py
+          echo "$WEBHOOK_RESPONSE" > return.py
+          
+          # Add the file to the Git staging area
+          git add return.py
+          
+          # Commit the changes
+          git commit -m "Add return.py with webhook response"
+          
+          # Push the changes back to the 'returns' branch
+          git push origin returns
