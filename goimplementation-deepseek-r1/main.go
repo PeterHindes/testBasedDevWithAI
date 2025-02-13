@@ -2,17 +2,20 @@
 package main
 
 import (
-	_ "bytes"
+	"bytes"
+	"io"
 	"crypto/rand"
 	"database/sql"
 	"fmt"
-	_ "io"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	_ "modernc.org/sqlite"
 )
+
+// force io and bytes to be imported
+var _, _ = io.ByteReader(nil), bytes.Buffer{}
 
 type Task struct {
 	ID             string    `json:"id"`
@@ -114,7 +117,9 @@ func createTask(c *gin.Context) {
 		Priority  int       `json:"priority" binding:"required,min=1,max=5"`
 	}
 
-	// Debug incoming request
+	var err error
+
+	// // Debug incoming request
 	// bodyBytes, err := c.GetRawData()
 	// if err != nil {
 	// 	fmt.Printf("Error reading body: %v\n", err)
@@ -143,7 +148,7 @@ func createTask(c *gin.Context) {
 	}
 
 	id := generateUUID()
-	_, err := db.Exec(`INSERT INTO tasks 
+	_, err = db.Exec(`INSERT INTO tasks 
 		(id, name, start_date, due_date, priority, status) 
 		VALUES (?, ?, ?, ?, ?, 'pending')`,
 		id, task.Name, task.StartDate, task.DueDate, task.Priority)
@@ -288,7 +293,6 @@ func getSystemAnalytics(c *gin.Context) {
 		FROM tasks WHERE status = 'completed'`)
 	defer completedRows.Close()
 	
-	fmt.Println("Completed tasks:")
 	var avgHours float64 = 0;
 	var numEntries int = 0;
 	for completedRows.Next() {
