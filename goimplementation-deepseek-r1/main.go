@@ -2,8 +2,10 @@
 package main
 
 import (
+	_ "bytes"
 	"database/sql"
 	"fmt"
+	_ "io"
 	"net/http"
 	"time"
 
@@ -49,6 +51,8 @@ func main() {
 
 	r := gin.Default()
 
+	r.DELETE("/reset", resetDatabase)
+
 	r.POST("/tasks", createTask)
 	r.GET("/tasks", listTasks)
 	r.PUT("/tasks/:id/complete", completeTask)
@@ -57,6 +61,22 @@ func main() {
 	r.DELETE("/tasks/old", deleteOldTasks)
 
 	r.Run(":8000")
+}
+
+func resetDatabase(c *gin.Context) {
+	if c.Query("confirm") != "true" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "confirm parameter required"})
+		return
+	}
+
+	_, err := db.Exec(`DROP TABLE IF EXISTS tasks`)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	createTable()
+	c.JSON(http.StatusOK, gin.H{"status": "reset"})
 }
 
 func createTable() {
@@ -81,22 +101,35 @@ func createTable() {
 func createTask(c *gin.Context) {
 	var task struct {
 		Name      string    `json:"name" binding:"required,min=3,max=50"`
-		StartDate time.Time `json:"start_date" binding:"required"`
-		DueDate   time.Time `json:"due_date" binding:"required"`
+		StartDate time.Time `json:"start_date" binding:"required" time_format:"2006-01-02T15:04:05Z07:00"`
+		DueDate   time.Time `json:"due_date" binding:"required" time_format:"2006-01-02T15:04:05Z07:00"`
 		Priority  int       `json:"priority" binding:"required,min=1,max=5"`
 	}
 
+	// Debug incoming request
+	// bodyBytes, err := c.GetRawData()
+	// if err != nil {
+	// 	fmt.Printf("Error reading body: %v\n", err)
+	// } else {
+	// 	fmt.Printf("Received task: %s\n", string(bodyBytes))
+	// }
+	// // Restore the body for binding
+	// c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
 	if err := c.ShouldBindJSON(&task); err != nil {
+		fmt.Printf("Error binding JSON: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if task.DueDate.Before(task.StartDate) {
+		fmt.Printf("Invalid dates: due_date %v is before start_date %v\n", task.DueDate, task.StartDate)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "due_date must be after start_date"})
 		return
 	}
 
 	if task.DueDate.Before(time.Now()) {
+		fmt.Printf("Invalid due_date: %v is in the past\n", task.DueDate)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "due_date must be in the future"})
 		return
 	}
@@ -222,12 +255,31 @@ func getSystemAnalytics(c *gin.Context) {
 	}
 
 	// Calculate average completion time
-	var avgHours *float64
-	row = db.QueryRow(`SELECT 
-		AVG((julianday(completed_at) - julianday(start_date)) * 24) 
+	// Print completed tasks
+	completedRows, _ := db.Query(`SELECT id, name, start_date, completed_at 
 		FROM tasks WHERE status = 'completed'`)
-	row.Scan(&avgHours)
-	stats.AvgCompletionHours = avgHours
+	defer completedRows.Close()
+	
+	fmt.Println("Completed tasks:")
+	var avgHours float64 = 0;
+	var numEntries int = 0;
+	for completedRows.Next() {
+		var id, name string
+		var startDate, completedAt time.Time
+		completedRows.Scan(&id, &name, &startDate, &completedAt)
+		avgHours += completedAt.Sub(startDate).Hours()
+		numEntries++
+		// fmt.Printf("Task %s: %s (Started: %v, Completed: %v)\n", 
+			// id, name, startDate.Format(time.RFC3339), completedAt.Format(time.RFC3339))
+	}
+	// Calculate average completion time from the values we fetched
+	if numEntries > 0 {
+		avgHours /= float64(numEntries)
+	} else {
+		avgHours = 0
+	}
+
+	stats.AvgCompletionHours = &avgHours
 
 	// Get priority distribution
 	rows, _ := db.Query(`SELECT priority, COUNT(*) 
