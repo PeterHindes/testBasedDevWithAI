@@ -198,28 +198,18 @@ func completeTask(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "completed"})
-}
-
-func uncompleteTask(c *gin.Context) {
-	id := c.Param("id")
-	result, err := db.Exec(`UPDATE tasks 
-		SET status = 'pending', completed_at = NULL 
-		WHERE id = ?`, id)
-	
+	var task Task
+	err = db.QueryRow("SELECT id, name, start_date, due_date, priority, status, created_at, completed_at FROM tasks WHERE id = ?", id).Scan(
+		&task.ID, &task.Name, &task.StartDate, &task.DueDate, &task.Priority, &task.Status, &task.CreatedAt, &task.CompletedAt,
+	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	rowsAffected, _ := result.RowsAffected()
-	if rowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"status": "pending"})
+	c.JSON(http.StatusOK, task)
 }
+
 
 func getAnalytics(c *gin.Context) {
 	var task Task

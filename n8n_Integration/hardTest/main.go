@@ -11,7 +11,11 @@ import (
 )
 
 func generatePatchFile() (string){
-	exec.Command("git", "diff", "HEAD~1", "HEAD").Output()
+	res, err := exec.Command("git", "diff", "HEAD~1", "HEAD").Output()
+	if err != nil {
+		return ""
+	}
+	return string(res)
 }
 
 func fetchCode() (string){
@@ -81,16 +85,24 @@ func main() {
 
 	// parse out only the diff code block
 	diffCodeBlock := resp.Choices[0].Message.Content
+	// remove the first line starting with ```
 	diffCodeBlock = strings.Split(diffCodeBlock, "```")[1]
-	diffCodeBlock = strings.Split(diffCodeBlock, "diff")[1]
-	diffCodeBlock = strings.TrimSpace(diffCodeBlock)
+	// remove the first line starting with diff
+	lines := strings.Split(diffCodeBlock, "\n")
+	for i, line := range lines {
+		if strings.HasPrefix(line, "diff") {
+			diffCodeBlock = strings.Join(lines[i+1:], "\n")
+			break
+		}
+	}
 
-	fmt.Println("Diff code block: ", diffCodeBlock)
+	fmt.Printf("\033[31mDiff code block: %s\033[0m", diffCodeBlock)
 
 	// Save the response to a file
-	_, err = os.Create("response.patch")
+	err = os.WriteFile("code/patch.patch", []byte(diffCodeBlock), 0644)
 	if err != nil {
-		fmt.Printf("Error creating response file: %v\n", err)
+		fmt.Println("Error writing patch file: ", err)
 		return
 	}
+	fmt.Println("Patch file written to patch.patch")
 }
