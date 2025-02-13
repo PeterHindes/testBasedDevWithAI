@@ -70,4 +70,11 @@ func TestCompleteTaskWorkflow(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "completed", task.Status)
 
+	// Uncomplete task
+	response = uncompleteTask(taskID)
+	require.Equal(t, 200, response.StatusCode)
+
+	err = json.Unmarshal(response.Body, &task)
+	require.NoError(t, err)
+	assert.Equal(t, "pending", task.Status)
 }
