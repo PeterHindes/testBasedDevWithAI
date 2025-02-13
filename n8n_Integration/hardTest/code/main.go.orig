@@ -60,6 +60,7 @@ func main() {
 	r.POST("/tasks", createTask)
 	r.GET("/tasks", listTasks)
 	r.PUT("/tasks/:id/complete", completeTask)
+	r.PUT("/tasks/:id/uncomplete", uncompleteTask)
 	r.GET("/tasks/:id/analytics", getAnalytics)
 	r.GET("/analytics", getSystemAnalytics)
 	r.DELETE("/tasks/old", deleteOldTasks)

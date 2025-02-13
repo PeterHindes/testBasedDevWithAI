@@ -97,7 +97,8 @@ func main() {
 	}
 
 	fmt.Printf("\033[31mDiff code block: %s\033[0m", diffCodeBlock)
-
+	// remove any trailing newlines
+	diffCodeBlock = strings.TrimSuffix(diffCodeBlock, "\n")
 	// Save the response to a file
 	err = os.WriteFile("code/patch.patch", []byte(diffCodeBlock), 0644)
 	if err != nil {
