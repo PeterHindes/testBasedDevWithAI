@@ -57,9 +57,16 @@ func main() {
 	r.POST("/tasks", createTask)
 	r.GET("/tasks", listTasks)
 	r.PUT("/tasks/:id/complete", completeTask)
+	r.PUT("/tasks/:id/uncomplete", uncompleteTask)
 	r.GET("/tasks/:id/analytics", getAnalytics)
 	r.GET("/analytics", getSystemAnalytics)
 	r.DELETE("/tasks/old", deleteOldTasks)
+
+	// Serve the frontend
+	r.GET("/", func(c *gin.Context) {
+		c.File("index.html")
+	})
+
 
 	r.Run(":8000")
 }
@@ -187,6 +194,26 @@ func completeTask(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "completed"})
+}
+
+func uncompleteTask(c *gin.Context) {
+	id := c.Param("id")
+	result, err := db.Exec(`UPDATE tasks 
+		SET status = 'pending', completed_at = NULL 
+		WHERE id = ?`, id)
+	
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "pending"})
 }
 
 func getAnalytics(c *gin.Context) {
