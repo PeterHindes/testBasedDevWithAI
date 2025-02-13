@@ -1,0 +1,13 @@
+diff --git a/test_api.py b/test_api.py
+index abc1234..def5678 100644
+--- a/test_api.py
++++ b/test_api.py
+@@ -1,7 +1,7 @@
+ import requests          
+ 
+-def test_api_hello():
++def test_api_holiday_cheer():
+     # Replace this URL with your actual API endpoint
+     url = "http://localhost:9090/hello"
+ 
+     # Make a GET request to the API
